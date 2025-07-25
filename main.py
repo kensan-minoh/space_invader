@@ -19,6 +19,7 @@ class Game():
         self.my_font = pygame.font.Font('game_font.ttf', 32)
 
         self.making_invaders()
+        spaceship = Spaceship(self.spaceship_group)
 
     def update(self):
         self.make_hud()
@@ -62,6 +63,21 @@ class Invader(pygame.sprite.Sprite):
 
                 sprite.direction_x *= -1
                 sprite.rect.y += self.velocity_y
+
+class Spaceship(pygame.sprite.Sprite):
+    def __init__(self, spaceship_group):
+        super().__init__(spaceship_group)
+        self.spaceship_group = spaceship_group
+        self.image = pygame.image.load('spaceship64.png')
+        self.rect = self.image.get_rect(midbottom=(WINDOW_WIDTH//2, WINDOW_HEIGHT-20))
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_RIGHT] and self.rect.right <= WINDOW_WIDTH:
+            self.rect.x += 3
+        if keys[pygame.K_LEFT] and self.rect.left >= 0:
+            self.rect.x += -3
 
 
 
@@ -115,6 +131,8 @@ while running:
     my_game.update()
     my_invader_group.update()
     my_invader_group.draw(display_surface)
+    my_spaceship_group.update()
+    my_spaceship_group.draw(display_surface)
 
 
     # update the display
