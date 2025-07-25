@@ -15,20 +15,33 @@ class Game():
 
         self.spaceship_image = pygame.image.load('spaceship64.png').convert_alpha()
         self.invader_image = pygame.image.load('invader64.png').convert_alpha() 
-
+        self.spaceship_laser_image = pygame.image.load('green_laser.png')
         self.my_font = pygame.font.Font('game_font.ttf', 32)
 
         self.making_invaders()
-        spaceship = Spaceship(self.spaceship_group)
+        self.spaceship = Spaceship(self.spaceship_group)
 
     def update(self):
         self.make_hud()
+        self.check_collisions()
+
+
+    def check_collisions(self):
+        for sprite in self.spaceship_laser_group.sprites():
+            invader = pygame.sprite.spritecollideany(sprite, self.invader_group)
+            if invader:
+                invader.kill()
+                sprite.kill()
+
 
     def making_invaders(self):
         for j in range(5):
 
             for i in range(11):
                 Invader(self.invader_image, i*60, j*60+GAME_WINDOW_UP+10, self.invader_group)
+    def making_spaceship_laser(self):
+        if len(self.spaceship_laser_group) < 3:
+            Spaceship_laser(self.spaceship_laser_image, self.spaceship.rect.centerx, self.spaceship.rect.top,self.spaceship_laser_group)
 
     def make_hud(self):
         round_text = self.my_font.render(f"ROUND: {self.round}", True, 'white')
@@ -79,6 +92,22 @@ class Spaceship(pygame.sprite.Sprite):
         if keys[pygame.K_LEFT] and self.rect.left >= 0:
             self.rect.x += -3
 
+class Spaceship_laser(pygame.sprite.Sprite):
+    def __init__(self, image, x, y, spaceship_laser_group):
+        super().__init__(spaceship_laser_group)
+        self.image = image
+        self.rect = self.image.get_rect(midbottom=(x, y))
+
+
+    def update(self):
+        self.move()
+
+
+    def move(self):
+        self.rect.y += -5
+        if self.rect.top <= GAME_WINDOW_UP:
+            self.kill()
+
 
 
 
@@ -121,6 +150,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            my_game.making_spaceship_laser()
 
 
     # fill the background
@@ -133,6 +164,8 @@ while running:
     my_invader_group.draw(display_surface)
     my_spaceship_group.update()
     my_spaceship_group.draw(display_surface)
+    my_spaceship_laser_group.update()
+    my_spaceship_laser_group.draw(display_surface)
 
 
     # update the display
