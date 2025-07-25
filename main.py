@@ -18,6 +18,12 @@ class Game():
         self.spaceship_laser_image = pygame.image.load('green_laser.png')
         self.my_font = pygame.font.Font('game_font.ttf', 32)
 
+        self.laser_beam_sound = pygame.mixer.Sound('laser_beam_sound.mp3')
+        self.laser_beam_sound.set_volume(0.1)
+        self.destroy_sound = pygame.mixer.Sound('destroy_sound.wav')
+        self.destroy_sound.set_volume(0.2)
+
+
         self.making_invaders()
         self.spaceship = Spaceship(self.spaceship_group)
 
@@ -30,6 +36,8 @@ class Game():
         for sprite in self.spaceship_laser_group.sprites():
             invader = pygame.sprite.spritecollideany(sprite, self.invader_group)
             if invader:
+                self.destroy_sound.play()
+                self.score += 10 * self.round
                 invader.kill()
                 sprite.kill()
 
@@ -41,6 +49,7 @@ class Game():
                 Invader(self.invader_image, i*60, j*60+GAME_WINDOW_UP+10, self.invader_group)
     def making_spaceship_laser(self):
         if len(self.spaceship_laser_group) < 3:
+            self.laser_beam_sound.play()
             Spaceship_laser(self.spaceship_laser_image, self.spaceship.rect.centerx, self.spaceship.rect.top,self.spaceship_laser_group)
 
     def make_hud(self):
