@@ -26,10 +26,32 @@ class Game():
 
         self.making_invaders()
         self.spaceship = Spaceship(self.spaceship_group)
+        
+        self.pausing_game("SPACE INVADER GAME", "PRESS ENTER TO BEGIN!")
 
     def update(self):
         self.make_hud()
         self.check_collisions()
+
+    def pausing_game(self, main_text, sub_text):
+        main_messege_text = self.my_font.render(main_text, True, 'white')
+        main_message_rect = main_messege_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2-50))
+        sub_messege_text = self.my_font.render(sub_text, True, 'white')
+        sub_message_rect = sub_messege_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
+
+        display_surface.blit(main_messege_text, main_message_rect)
+        display_surface.blit(sub_messege_text, sub_message_rect)
+
+        pygame.display.update()
+        is_waiting = True
+        while is_waiting:
+
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                is_waiting = False
+                pygame.quit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                is_waiting = False
 
 
     def check_collisions(self):
@@ -92,6 +114,7 @@ class Spaceship(pygame.sprite.Sprite):
         self.spaceship_group = spaceship_group
         self.image = pygame.image.load('spaceship64.png')
         self.rect = self.image.get_rect(midbottom=(WINDOW_WIDTH//2, WINDOW_HEIGHT-20))
+        
 
     def update(self):
         keys = pygame.key.get_pressed()
