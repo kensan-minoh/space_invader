@@ -26,14 +26,19 @@ class Game():
         self.destroy_sound.set_volume(0.2)
         self.invader_laser_sound = pygame.mixer.Sound('invader_laser_sound.mp3')
         self.loose_life_sound = pygame.mixer.Sound('loose_life_sound.mp3')
-
-        self.new_game_setup()
+        self.new_round_sound = pygame.mixer.Sound('new_round_sound.mp3')
+        
         self.pausing_game("SPACE INVADER GAME", "PRESS ENTER TO BEGIN!")
+        self.new_game_setup(1)
 
-    def new_game_setup(self):
-        self.score = 0
-        self.round = 1
-        self.lives = 5
+    def new_game_setup(self, round):
+        self.new_round_sound.play()
+        self.round = round
+        if round == 1:
+            self.score = 0
+            self.lives = 5
+    
+
 
 
         if len(self.invader_group)>0:
@@ -85,7 +90,6 @@ class Game():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 is_waiting = False
 
-
     def check_collisions(self):
         for sprite in self.spaceship_laser_group.sprites():
             invader = pygame.sprite.spritecollideany(sprite, self.invader_group)
@@ -94,16 +98,21 @@ class Game():
                 self.score += 10 * self.round
                 invader.kill()
                 sprite.kill()
+        
+                if len(self.invader_group) == 0:
+                    self.round += 1
+                    self.pausing_game(f"SPACE INVADERS ROUND {self.round}", "PRESS ENTER TO BEBIN")
+                    self.new_game_setup(self.round)
 
     def check_collisons_with_spaceship(self):
         if pygame.sprite.spritecollide(self.spaceship_group.sprite, self.invader_laser_group, True):
             self.loose_life_sound.play()
             self.lives += -1
             if self.lives == 0:
-                self.pausing_game(f"FINAL SCORE: 6800", "PRESS ENTER TO PLAY AGAIN")
-                self.new_game_setup()
-            else:
+                self.pausing_game(f"FINAL SCORE: {self.score}", "PRESS ENTER TO PLAY AGAIN")
+                self.new_game_setup(1)
 
+            else:
                 self.pausing_game("YOU'VE BEEN HIT!", "PRESS ENTER TO CONTINUE")
 
         
@@ -115,7 +124,7 @@ class Game():
         for j in range(5):
 
             for i in range(11):
-                Invader(self.invader_image, i*60, j*60+GAME_WINDOW_UP+10, self.invader_group)
+                Invader(self.invader_image, i*60, j*60+GAME_WINDOW_UP+10, self.round, self.invader_group)
     
     def making_spaceship_laser(self):
         if len(self.spaceship_laser_group) < 3:
@@ -138,17 +147,18 @@ class Game():
 
 
 class Invader(pygame.sprite.Sprite):
-    def __init__(self, image, x, y, invader_group):
+    def __init__(self, image, x, y, round, invader_group):
         super().__init__(invader_group)
         self.image = image
-
-        self.rect = self.image.get_rect(topleft=(x,y))
         self.invader_group = invader_group
-        self.velocity_x = 1
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+        self.velocity_x = 1 * round
         self.direction_x = 1
-        self.velocity_y = 20
+        self.velocity_y = 15 * round
 
     def update(self):
+  
         self.rect.x += self.direction_x * self.velocity_x
 
         if self.rect.right >= WINDOW_WIDTH+10 or self.rect.left <= -10:
@@ -271,10 +281,6 @@ while running:
 
     # update the display
     pygame.display.update()
-
-
-
-
 
     # tick the clock
     clock.tick(FPS)
