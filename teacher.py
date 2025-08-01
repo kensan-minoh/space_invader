@@ -58,7 +58,32 @@ class Game():
  
     def shift_aliens(self):
         ''' shift a wave of aliens down the screen and reverse direction'''
-        pass
+        # determine if an alien group hit an edge
+        shift = False
+        for sprite in self.alien_group.sprites():
+            if sprite.rect.right >= WINDOW_WIDTH or sprite.rect.left <= 0:
+                shift = True
+        
+        # shift every alien down, change direction, and check for a breach
+        if shift:
+            breach = False
+            
+            for spr in self.alien_group.sprites():
+
+                # shift down
+                spr.rect.y += 100 * self.round_number
+                # change direction abd move the alien off the edge so shift does not trigger
+                spr.direction *= -1
+                spr.rect.x += spr.velocity * spr.direction
+
+                # check if an alien reaches the ship
+                if spr.rect.bottom >= WINDOW_HEIGHT - 120:
+                    breach = True
+
+            if breach:
+                self.player.lives += -1
+                self.breach_sound.play()
+                self.check_game_status("breach")
 
     def check_collisions(self):
         ''' check for collisions'''
@@ -76,14 +101,46 @@ class Game():
                 x_cor = 64 * i + 64
                 y_cor = 64 * j + 64
                 Alien(self.alien_image, x_cor, y_cor, self.round_number, self.alien_bullet_group, self.alien_group)
+        
+        # pause the game and prompt user to start
+        self.new_round_sound.play()
+        self.pause_game('SPACE INVADER GAME', 'PRESS ENTER TO START')
 
-    def check_game_status(self):
+    def check_game_status(self, status):
         ''' check to see the status of the game and how the player dies'''
-        pass
+        if status == "breach":
+            if self.player.lives > 0:
+                self.pause_game("You lost a life", "Press Enter to continue")
+                for alien in self.alien_group.sprites():
+                    alien.rect.x = alien.starting_x
+                    alien.rect.y = alien.starting_y
+                    alien.direction = 1
+            else:
+                self.pause_game(f"Your final score is {self.score}", "Press Enter to Play Again")
 
-    def pause_game(self):
+    def pause_game(self, main_text, sub_text):
         ''' pauses the game'''
-        pass
+        main_text = self.font.render(main_text, True, 'white')
+        main_rect = main_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 -50))
+        sub_text = self.font.render(sub_text, True, 'white')
+        sub_rect =sub_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
+
+
+        display_surface.fill('black')
+        display_surface.blit(main_text, main_rect)
+        display_surface.blit(sub_text, sub_rect)
+        pygame.display.update()
+        
+        is_waiting = True
+        while is_waiting:
+
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                is_waiting = False
+                pygame.quit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                is_waiting = False
+
 
     def reset_game(self):
         ''' reset the game'''
